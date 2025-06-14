@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Piggy Bank</title>
+<style>
+  /* Base styles from before */
+  body {
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+    color: #333;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  h1 {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 900;
+    font-size: 2.5rem;
+    color: #bf360c;
+    text-shadow: 1px 1px 2px #fbe9e7;
+  }
+  h1 .piggy-icon {
+    font-size: 2.8rem;
+    animation: piggyBounce 1.2s infinite ease-in-out;
+    position: relative;
+    display: inline-block;
+    filter: drop-shadow(0 0 2px #bf360c);
+    cursor: default;
+    user-select: none;
+  }
+  .piggy-icon.sparkle {
+    animation: piggySparkle 1s ease forwards;
+  }
+  @keyframes piggySparkle {
+    0%   { filter: drop-shadow(0 0 2px #bf360c) brightness(1); }
+    50%  { filter: drop-shadow(0 0 20px #ffd54f) brightness(1.6); }
+    100% { filter: drop-shadow(0 0 2px #bf360c) brightness(1); }
+  }
+  @keyframes piggyBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .balance {
+    font-size: 2rem;
+    margin: 10px 0;
+    color: #6d4c41;
+    font-weight: 700;
+    text-shadow: 1px 1px 2px #fff3e0;
+  }
+  .target {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: #a0522d;
+    font-style: italic;
+    max-width: 450px;
+    text-align: center;
+    user-select: none;
+  }
+  .motivational {
+    font-size: 1.15rem;
+    margin-bottom: 25px;
+    max-width: 450px;
+    font-weight: 600;
+    color: #4e342e;
+    text-align: center;
+    user-select: none;
+    line-height: 1.4;
+  }
+  .progress-container {
+    width: 90%;
+    max-width: 500px;
+    background: #d7ccc8;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 25px;
+    box-shadow: 0 0 10px #bcaaa4;
+  }
+  .progress-bar {
+    height: 22px;
+    background: #ff8a65;
+    width: 0%;
+    transition: width 0.4s ease;
+    border-radius: 10px 0 0 10px;
+    box-shadow: inset 0 2px 6px #ff7043;
+  }
+  form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 25px;
+    max-width: 500px;
+    width: 100%;
+  }
+  form input, form button {
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    box-shadow: 0 2px 6px #bcaaa4;
+  }
+  form input[type="number"] {
+    width: 120px;
+  }
+  form input[type="text"] {
+    flex-grow: 1;
+    min-width: 150px;
+  }
+  form button {
+    background: #ff7043;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 700;
+    user-select: none;
+  }
+  form button:hover {
+    background: #e64a19;
+  }
+  form button#spendBtn {
+    background: #d84315;
+  }
+  form button#spendBtn:hover {
+    background: #bf360c;
+  }
+  .transactions {
+    width: 90%;
+    max-width: 500px;
+    margin-top: 20px;
+  }
+  .transactions h3 {
+    margin-bottom: 10px;
+    border-bottom: 2px solid #ff7043;
+    padding-bottom: 5px;
+    color: #bf360c;
+    user-select: none;
+  }
+  .transactions ul {
+    list-style: none;
+    padding: 0;
+    max-height: 250px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #ff7043 #fbe9e7;
+    background: #fff3e0;
+    border-radius: 8px;
+    box-shadow: inset 0 0 6px #bcaaa4;
+  }
+  .transactions ul::-webkit-scrollbar {
+    width: 8px;
+  }
+  .transactions ul::-webkit-scrollbar-thumb {
+    background-color: #ff7043;
+    border-radius: 4px;
+  }
+  .transactions li {
+    background: #ffe0b2;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-left: 8px solid;
+    border-radius: 6px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #4e342e;
+  }
+  .deposit {
+    border-color: #ff7043;
+  }
+  .expense {
+    border-color: #d84315;
+    background: #ffccbc;
+    color: #bf360c;
+  }
+  .reset-btn {
+    background: #d84315;
+    margin-top: 20px;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s;
+    color: white;
+    user-select: none;
+  }
+  .reset-btn:hover {
+    background: #bf360c;
+  }
+  /* Coin animation */
+  .coin {
+    position: fixed;
+    width: 28px;
+    height: 28px;
+    background: radial-gradient(circle at 50% 50%, #ffde4a, #c2a71d);
+    border-radius: 50%;
+    box-shadow: inset 0 0 6px #fff8b0, 0 2px 6px #b38f00;
+    pointer-events: none;
+    z-index: 10000;
+    animation-fill-mode: forwards;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    filter: drop-shadow(0 0 4px #ffd54f);
+  }
+  @keyframes fallAndBounce {
+    0% {
+      opacity: 1;
+      transform: translateY(0) translateX(0) rotate(0deg);
+    }
+    85% {
+      opacity: 1;
+      transform: translateY(75vh) translateX(var(--x-move)) rotate(720deg);
+    }
+    95% {
+      transform: translateY(calc(75vh - 15px)) translateX(var(--x-move)) rotate(720deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(75vh) translateX(var(--x-move)) rotate(720deg);
+    }
+  }
+  /* Spend coin animation */
+  .coin.spend {
+    background: radial-gradient(circle at 50% 50%, #ff5252, #b71c1c);
+    box-shadow: inset 0 0 8px #ff8a8a, 0 2px 8px #b71c1c;
+    filter: drop-shadow(0 0 5px #ff5252);
+  }
+  @keyframes spendFlyUp {
+    0% {
+      opacity: 1;
+      transform: translateY(0) translateX(0) rotate(0deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-150px) translateX(var(--x-move)) rotate(-720deg);
+    }
+  }
+
+  /* LOCKER OVERLAY */
+  #lockerOverlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(145deg, #3e2723, #5d4037);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 11000;
+    flex-direction: column;
+    color: #ffd54f;
+    font-weight: 700;
+    user-select: none;
+    overflow: hidden;
+  }
+  #lockerOverlay.hidden {
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+  #lockerContainer {
+    width: 180px;
+    height: 180px;
+    background: linear-gradient(145deg, #6d4c41, #4e342e);
+    border-radius: 12px;
+    box-shadow: inset 2px 2px 8px #311b0b, 6px 6px 20px #1b0f05;
+    position: relative;
+    cursor: pointer;
+    perspective: 1000px;
+  }
+  #lockerDoor {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, #a1887f, #5d4037);
+    border-radius: 12px;
+    box-shadow: inset 1px 1px 6px #3e2723;
+    transform-origin: left center;
+    transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #lockerDoor.open {
+    transform: rotateY(-100deg);
+    box-shadow: none;
+  }
+  #lockerHandle {
+    position: absolute;
+    width: 20px;
+    height: 60px;
+    background: #bf360c;
+    border-radius: 10px;
+    right: 25px;
+    top: 60px;
+    box-shadow: 0 0 8px #ff8a65;
+    transition: background-color 0.3s;
+  }
+  #lockerContainer:hover #lockerHandle {
+    background-color: #e64a19;
+    box-shadow: 0 0 15px #ff7043;
+  }
+  #lockerLabel {
+    margin-top: 20px;
+    font-size: 1.5rem;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 8px #ffd54f;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOCKER OVERLAY -->
+<div id="lockerOverlay">
+  <div id="lockerContainer" tabindex="0" role="button" aria-label="Open piggy bank locker">
+    <div id="lockerDoor"></div>
+    <div id="lockerHandle"></div>
+  </div>
+  <div id="lockerLabel">Click to Open Your Bank Locker</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<h1><span class="piggy-icon" id="piggyIcon">🐷</span> My Piggy Bank</h1>
+<div class="balance">Balance: NPR <span id="balance">0</span></div>
+<div class="target">Target: NPR 30,000 (for a brand new phone 📱)</div>
+<div class="motivational">
+  Every rupee counts! Save today, enjoy tomorrow.<br/>
+  Keep adding little by little — your new phone is getting closer!
+</div>
+<div class="progress-container">
+  <div class="progress-bar" id="progressBar"></div>
+</div>
+
+<form id="transactionForm">
+  <input type="number" id="amount" placeholder="Amount" min="1" required />
+  <input type="text" id="note" placeholder="Reason (optional)" maxlength="30" />
+  <button type="submit">Add Deposit</button>
+  <button type="button" id="spendBtn">Add Expense</button>
+</form>
+
+<div class="transactions">
+  <h3>Transaction History</h3>
+  <ul id="transactionList"></ul>
+</div>
+
+<button class="reset-btn" onclick="resetAll()">Reset Everything</button>
+
+<script>
+  const balanceEl = document.getElementById('balance');
+  const progressBar = document.getElementById('progressBar');
+  const transactionList = document.getElementById('transactionList');
+  const form = document.getElementById('transactionForm');
+  const amountEl = document.getElementById('amount');
+  const noteEl = document.getElementById('note');
+  const spendBtn = document.getElementById('spendBtn');
+  const piggyIcon = document.getElementById('piggyIcon');
+
+  // Locker elements
+  const lockerOverlay = document.getElementById('lockerOverlay');
+  const lockerContainer = document.getElementById('lockerContainer');
+  const lockerDoor = document.getElementById('lockerDoor');
+
+  const TARGET = 30000;
+
+  let balance = parseInt(localStorage.getItem('balance')) || 0;
+  let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+  // Show locker on first load or if never opened this session
+  let lockerOpened = sessionStorage.getItem('lockerOpened');
+  if (lockerOpened) {
+    lockerOverlay.style.display = 'none';
+  }
+
+  function updateUI() {
+    balanceEl.textContent = balance;
+    const percent = Math.min((balance / TARGET) * 100, 100);
+    progressBar.style.width = `${percent}%`;
+    renderTransactions();
+  }
+
+  function renderTransactions() {
+    transactionList.innerHTML = '';
+    transactions.slice().reverse().forEach(tx => {
+      const li = document.createElement('li');
+      li.className = tx.type;
+      li.textContent = `${tx.type === 'deposit' ? '+' : '-'} NPR ${tx.amount} - ${tx.note || 'No note'} (${tx.date})`;
+      transactionList.appendChild(li);
+    });
+  }
+
+  function addTransaction(amount, note, type) {
+    const date = new Date().toLocaleDateString();
+    transactions.push({ amount, note, type, date });
+    if (type === 'deposit') {
+      balance += amount;
+      triggerCoinAnimation();
+    } else {
+      balance -= amount;
+      if (balance < 0) balance = 0;
+      triggerSpendAnimation();
+    }
+    saveData();
+    updateUI();
+  }
+
+  function saveData() {
+    localStorage.setItem('balance', balance);
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const amount = parseInt(amountEl.value);
+    const note = noteEl.value.trim();
+    if (amount > 0) {
+      addTransaction(amount, note, 'deposit');
+      form.reset();
+    }
+  });
+
+  spendBtn.addEventListener('click', () => {
+    const amount = parseInt(amountEl.value);
+    const note = noteEl.value.trim();
+    if (amount > 0) {
+      addTransaction(amount, note, 'expense');
+      form.reset();
+    }
+  });
+
+  function resetAll() {
+    if (confirm('Are you sure you want to reset everything?')) {
+      balance = 0;
+      transactions = [];
+      saveData();
+      updateUI();
+    }
+  }
+
+  // Deposit coin animation
+  function triggerCoinAnimation() {
+    piggyIcon.classList.add('sparkle');
+    setTimeout(() => {
+      piggyIcon.classList.remove('sparkle');
+    }, 1000);
+    for(let i = 0; i < 5; i++) {
+      createCoin(i);
+    }
+  }
+
+  function createCoin(index) {
+    const coin = document.createElement('div');
+    coin.classList.add('coin');
+    const xMove = (Math.random() * 60 - 30).toFixed(2) + 'px';
+    coin.style.setProperty('--x-move', xMove);
+    const rect = piggyIcon.getBoundingClientRect();
+    coin.style.left = rect.left + rect.width / 2 + 'px';
+    coin.style.top = rect.top + 'px';
+    coin.style.animation = `fallAndBounce 1s ease forwards`;
+    coin.style.animationDelay = (index * 0.1) + 's';
+    document.body.appendChild(coin);
+    setTimeout(() => {
+      coin.remove();
+    }, 1200 + index * 100);
+  }
+
+  // Spend coin animation
+  function triggerSpendAnimation() {
+    piggyIcon.classList.add('sparkle');
+    setTimeout(() => {
+      piggyIcon.classList.remove('sparkle');
+    }, 1000);
+    for(let i = 0; i < 5; i++) {
+      createSpendCoin(i);
+    }
+  }
+
+  function createSpendCoin(index) {
+    const coin = document.createElement('div');
+    coin.classList.add('coin', 'spend');
+    const xMove = (Math.random() * 60 - 30).toFixed(2) + 'px';
+    coin.style.setProperty('--x-move', xMove);
+    const rect = piggyIcon.getBoundingClientRect();
+    coin.style.left = rect.left + rect.width / 2 + 'px';
+    coin.style.top = rect.top + 'px';
+    coin.style.animation = `spendFlyUp 1s ease forwards`;
+    coin.style.animationDelay = (index * 0.1) + 's';
+    document.body.appendChild(coin);
+    setTimeout(() => {
+      coin.remove();
+    }, 1200 + index * 100);
+  }
+
+  // Locker open animation & hiding overlay
+  lockerContainer.addEventListener('click', openLocker);
+  lockerContainer.addEventListener('keypress', e => {
+    if(e.key === 'Enter' || e.key === ' ') {
+      openLocker();
+      e.preventDefault();
+    }
+  });
+
+  function openLocker() {
+    if (lockerOverlay.classList.contains('hidden')) return;
+    lockerDoor.classList.add('open');
+    lockerContainer.style.cursor = 'default';
+    // After door opens, fade out overlay
+    setTimeout(() => {
+      lockerOverlay.style.transition = 'opacity 1s ease';
+      lockerOverlay.style.opacity = 0;
+      sessionStorage.setItem('lockerOpened', 'true');
+      setTimeout(() => {
+        lockerOverlay.style.display = 'none';
+      }, 1000);
+    }, 1400);
+  }
+
+  // Initial UI update
+  updateUI();
+</script>
+
+</body>
+</html>
